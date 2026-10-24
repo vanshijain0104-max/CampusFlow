@@ -1,0 +1,229 @@
+// CampusFlow — Prisma Schema
+// Phase 1: Core Architecture & Relational Schema
+// Generator: prisma-client-js | Provider: postgresql
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────
+
+enum Role {
+  STUDENT
+  WARDEN
+  ADMIN
+  GUARD
+}
+
+enum LeaveType {
+  CASUAL
+  MID_TERM_RECESS
+  SUMMER_VACATION
+}
+
+enum LeaveStatus {
+  PENDING_PARENT
+  PENDING_WARDEN_1
+  PENDING_DEAN
+  PENDING_WARDEN_FINAL
+  PENDING_VANI_MANDIR
+  APPROVED_QR_ACTIVE
+  CONSUMED
+  COMPLETED
+  REJECTED_PARENT
+}
+
+// ─────────────────────────────────────────────
+// USER — Central identity record for all roles
+// ─────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  role          Role
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  student        Student?
+  wardenOf       Hostel[]     @relation("HostelWarden")
+  auditLogs      AuditLog[]
+  approvedLeaves Leave[]      @relation("LeaveApprover")
+
+  @@map("users")
+}
+
+// ─────────────────────────────────────────────
+// HOSTEL — Normalized hostel entity
+// ─────────────────────────────────────────────
+
+model Hostel {
+  id         String    @id @default(cuid())
+  name       String    @unique
+  wardenId   String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  // Relations
+  warden     User?     @relation("HostelWarden", fields: [wardenId], references: [id])
+  students   Student[]
+
+  @@map("hostels")
+}
+
+// ─────────────────────────────────────────────
+// STUDENT — Extended profile linked to User
+// ─────────────────────────────────────────────
+
+model Student {
+  id           String    @id @default(cuid())
+  userId       String    @unique
+  rollNumber   String    @unique
+  studentId    String    @unique  // e.g. BTBTC24145
+  fullName     String
+  branch       String
+  programme    String    @default("B.Tech")
+  year         Int       @default(1)
+  hostelId     String
+  roomNumber   String?
+  parentPhone  String?
+  parentEmail  String?
+  photo        String?   // URL to profile photo
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Relations
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hostel       Hostel       @relation(fields: [hostelId], references: [id])
+  leaves       Leave[]
+  leaveQuota   LeaveQuota[]
+  gatePasses   GatePass[]
+
+  @@map("students")
+}
+
+// ─────────────────────────────────────────────
+// LEAVE QUOTA — Tracks allocated leave days per type per session
+// ─────────────────────────────────────────────
+
+model LeaveQuota {
+  id            String    @id @default(cuid())
+  studentId     String
+  leaveType     LeaveType
+  session       String    // e.g. "2026-27"
+  totalDays     Int
+  usedDays      Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  student       Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, leaveType, session])
+  @@map("leave_quotas")
+}
+
+// ─────────────────────────────────────────────
+// LEAVE — A leave application record
+// ─────────────────────────────────────────────
+
+model Leave {
+  id                String      @id @default(cuid())
+  studentId         String
+  leaveType         LeaveType
+  bookletType       String      @default("NORMAL") // NORMAL, DIWALI, SUMMER
+  fromDate          DateTime
+  toDate            DateTime
+  totalDays         Int
+  chargeableDays    Int         @default(0)
+  quotaAlertFlag    String?
+  reason            String      @db.Text
+  destination       String
+  parentConsent     Boolean     @default(false)
+  parentToken       String?     @unique
+  parentTokenExpiry DateTime?
+  parentApprovedAt  DateTime?
+  parentIpAddress   String?
+  status            LeaveStatus @default(PENDING_PARENT)
+  approverId        String?
+  rejectionNote     String?     @db.Text
+  appliedAt         DateTime    @default(now())
+  reviewedAt        DateTime?
+  updatedAt         DateTime    @updatedAt
+
+  // Relations
+  student           Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  approver          User?       @relation("LeaveApprover", fields: [approverId], references: [id])
+  gatePasses        GatePass[]
+
+  @@map("leaves")
+}
+
+// ─────────────────────────────────────────────
+// GATE PASS — Entry/exit record at the gate
+// ─────────────────────────────────────────────
+
+model GatePass {
+  id          String    @id @default(cuid())
+  studentId   String
+  leaveId     String?
+  passCode    String    @unique @default(cuid())
+  exitTime    DateTime?
+  entryTime   DateTime?
+  notes       String?
+  issuedAt    DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  student     Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  leave       Leave?    @relation(fields: [leaveId], references: [id])
+
+  @@map("gate_passes")
+}
+
+// ─────────────────────────────────────────────
+// AUDIT LOG — Immutable action trail
+// ─────────────────────────────────────────────
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String
+  action     String
+  entity     String
+  entityId   String?
+  metadata   Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  // Relations
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
+}
+
+// ─────────────────────────────────────────────
+// ACADEMIC CALENDAR — Institutional schedule & holidays
+// ─────────────────────────────────────────────
+
+model Academic_Calendar {
+  id          String   @id @default(cuid())
+  date        DateTime @unique
+  eventName   String
+  isHoliday   Boolean  @default(false)
+  isTuesday   Boolean  @default(false)
+  holidayType String   // GAZETTED, DIWALI_WINDOW, SUMMER_WINDOW, REGULAR
+  createdAt   DateTime @default(now())
+
+  @@map("academic_calendar")
+}
+

@@ -1,0 +1,52 @@
+[
+  {
+    "email": "Barkhaaa5050+priya@gmail.com",
+    "fullName": "Priya Singh",
+    "rollNumber": "241H0320145",
+    "studentId": "BTBTC24145",
+    "branch": "CSE",
+    "hostelName": "Shri Shanta Soudh",
+    "plainPassword": "PRIYA",
+    "passwordHash": "$2b$10$a/YGXhNTpaWZt9hlDJhy/eDe.lGf7bYaPQ0uknC2T6YjW5GtI6Fya"
+  },
+  {
+    "email": "Barkhaaa5050+ananya@gmail.com",
+    "fullName": "Ananya Sharma",
+    "rollNumber": "241H0320188",
+    "studentId": "BTBTC24188",
+    "branch": "IT",
+    "hostelName": "Shri Shanta Niketan",
+    "plainPassword": "ANANYA",
+    "passwordHash": "$2b$10$arW7UNIxWRDPVhDd70kUWeN3v8Z1w7u6GsAMLVpUxrxWuR2Z/0qiG"
+  },
+  {
+    "email": "Barkhaaa5050+sneha@gmail.com",
+    "fullName": "Sneha Verma",
+    "rollNumber": "241H0320215",
+    "studentId": "BTBTC24215",
+    "branch": "CSE",
+    "hostelName": "Shri Shanta Aynam",
+    "plainPassword": "SNEHA",
+    "passwordHash": "$2b$10$gFRdEc3C1iXqjgvH0ZBMvuDTHHtRvWPmgFBgkLcidVomcHjofjd4O"
+  },
+  {
+    "email": "Barkhaaa5050+kavya@gmail.com",
+    "fullName": "Kavya Joshi",
+    "rollNumber": "241H0320245",
+    "studentId": "BTBTC24245",
+    "branch": "ECE",
+    "hostelName": "Shri Shanta Ajeeram",
+    "plainPassword": "KAVYA",
+    "passwordHash": "$2b$10$sKZP/w04rHtMJ45E2kLhYO5yTQ0DkSGerOddv.uBI8HkQCdrhxrDS"
+  },
+  {
+    "email": "Barkhaaa5050+megha@gmail.com",
+    "fullName": "Megha Gupta",
+    "rollNumber": "241H0320278",
+    "studentId": "BTBTC24278",
+    "branch": "IT",
+    "hostelName": "Shri Shanta Nikay",
+    "plainPassword": "MEGHA",
+    "passwordHash": "$2b$10$xOzLOSJR.jw2K8kn.4eZ2uFftAKwNkh94KuBy8CdVamPeP.Vtpcwu"
+  }
+]
